@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -64,29 +66,59 @@ func RsaDecrypt(cipherData []byte) (plainData []byte, err error) {
 	return
 }
 
+func RsaSign(plainText string) (signature []byte, err error) {
+
+	block, _ := pem.Decode([]byte(privateKey))
+	if block == nil {
+		err = fmt.Errorf("nil block")
+		return
+	}
+	privateKeyData, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return
+	}
+
+	sha1Data := sha1.Sum([]byte(plainText))
+	fmt.Println(sha1Data[:])
+	signature, err = rsa.SignPKCS1v15(rand.Reader, privateKeyData, crypto.SHA1, sha1Data[:])
+	if err != nil {
+		fmt.Printf("Error: %s\n", err.Error())
+	}
+
+	return
+}
+
 func main() {
 
 	plainText := "Hello World"
 
-	cipher, err := RsaEncrypt([]byte(plainText))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// cipher, err := RsaEncrypt([]byte(plainText))
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 
-	cipherText := base64.StdEncoding.EncodeToString(cipher)
-	fmt.Println(cipherText)
-	phpCipherBase64Encoded := "NKymQEECcVL6d4KMLhMDMkU7a6zd65oAQQ3x108kUnMHl8qc22JKLgiKXXNHW35QEMa3wixtafsn4+28OphZ3ov2IfG6f5iC4lB5vlND+fEkedeBESE/Jzi/z0JGQgIPi/d9sE83V7SHPk2Xh4RRMrr2aCsPh/hhbMkrg4KIeZk="
-	phpCipherData, err := base64.StdEncoding.DecodeString(phpCipherBase64Encoded)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// cipherText := base64.StdEncoding.EncodeToString(cipher)
+	// fmt.Println(cipherText)
+	// phpCipherBase64Encoded := "NKymQEECcVL6d4KMLhMDMkU7a6zd65oAQQ3x108kUnMHl8qc22JKLgiKXXNHW35QEMa3wixtafsn4+28OphZ3ov2IfG6f5iC4lB5vlND+fEkedeBESE/Jzi/z0JGQgIPi/d9sE83V7SHPk2Xh4RRMrr2aCsPh/hhbMkrg4KIeZk="
+	// phpCipherData, err := base64.StdEncoding.DecodeString(phpCipherBase64Encoded)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 
-	plainData, err := RsaDecrypt(phpCipherData)
+	// plainData, err := RsaDecrypt(phpCipherData)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// fmt.Printf("decode to string: %s \n", plainData)
+
+	signature, err := RsaSign(plainText)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s", plainData)
+	fmt.Printf("signature: %s \n", base64.StdEncoding.EncodeToString(signature))
 }

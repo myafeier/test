@@ -35,11 +35,26 @@ function rsaDecrypt($data)
   return $decrypted;
 }
 
+function rsaSign($data)
+{
+  global $privateKey; 
+  openssl_sign($data, $signature, $privateKey,OPENSSL_ALGO_SHA1);
+  return $signature;
+   
+}
+
 $plaintext="Hello World";
 $encrypted=rsaEncrypt($plaintext);
 echo "encryted:=".base64_encode($encrypted)."\n<br/>";
 $p=rsaDecrypt($encrypted);
-echo "plainText:=".$p;
+echo "plainText:=".$p."\n<br/>";
+
+$signature=rsaSign($plaintext);
+echo "signature: ".base64_encode($signature);
+
+
+
+
 
 
 
