@@ -18,12 +18,16 @@
     all done!
   ```
 - Running your Certificate Authority
-  - `step-ca $(step path)/config/ca.json`
+  
+  `step-ca $(step path)/config/ca.json`
 - Generate crt and key
   - generate server crt and key
-    - `step ca certificate localhost srv.crt srv.key`
+    
+    `step ca certificate localhost srv.crt srv.key`
   - copy ca.crt
-    - `step ca root ca.crt`
+    
+    `step ca root ca.crt`
   - generate client crt and key
-    - `step ca certificate "client" client.crt client.key`
+    
+    `step ca certificate "client" client.crt client.key`
 
