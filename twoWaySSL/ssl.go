@@ -8,10 +8,16 @@ import "net/http"
 
 import "crypto/tls"
 
+import "os/signal"
+
+import "os"
+
+import "syscall"
+
 const (
-	CaCert     = "/Users/xiafei/test/gotest/twoWaySSL/keys/ca.crt"
-	ServerKey  = "/Users/xiafei/test/gotest/twoWaySSL/keys/srv.key"
-	ServerCert = "/Users/xiafei/test/gotest/twoWaySSL/keys/srv.crt"
+	CaCert     = "./keys/ca.crt"
+	ServerKey  = "./keys/srv.key"
+	ServerCert = "./keys/srv.crt"
 )
 
 func init() {
@@ -40,13 +46,29 @@ func main() {
 	}
 	tlsConfig.BuildNameToCertificate()
 	s := &http.Server{
-		Addr:      ":8080",
+		Addr:      ":1433",
 		Handler:   mux,
 		TLSConfig: tlsConfig,
 	}
-	err = s.ListenAndServeTLS(ServerCert, ServerKey)
-	if err != nil {
-		panic(err)
+	go func() {
+		log.Info("Listening 1433...")
+		err = s.ListenAndServeTLS(ServerCert, ServerKey)
+		if err != nil {
+			panic(err)
+		}
+	}()
+	go func() {
+		log.Info("Listening 80...")
+		http.ListenAndServe(":80", mux)
+	}()
+	signalChan := make(chan os.Signal)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	for {
+		select {
+		case <-signalChan:
+			log.Info("system exit!")
+			os.Exit(0)
+		}
 	}
 
 }
